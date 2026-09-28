@@ -1,0 +1,366 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 09f886ad403040baac472e7e0b04ba29
+    name: Templates/Network devices/Switches
+  templates:
+  - uuid: 615caad3d2864b1698bb97e8bd9c25d0
+    template: HPE Aruba Networking CX 6000 R9Y03A by SNMP
+    name: HPE Aruba Networking CX 6000 R9Y03A by SNMP
+    description: 'Zabbix 7.0 template for HPE Aruba Networking CX 6000 R9Y03A.
+
+
+      Uses vendor-neutral standard SNMP objects so the template is safe across firmware revisions: SNMPv2-MIB/MIB-II for system identity and uptime,
+      plus IF-MIB for interface discovery, status, speed, traffic, errors and discards.
+
+
+      The switch must have SNMP enabled and a matching SNMP interface configured on the Zabbix host. Vendor-private OIDs are intentionally not
+      guessed. Models/families in this package were included only where SNMP support was verified at the product, family, or network-OS level.'
+    vendor:
+      name: OpenAI generated
+      version: 7.0-1
+    groups:
+    - name: Templates/Network devices/Switches
+    tags:
+    - tag: class
+      value: network switch
+    - tag: manufacturer
+      value: HPE Aruba Networking
+    - tag: model
+      value: CX 6000 R9Y03A
+    items:
+    - uuid: b47ea7951e064cbaa2d35fc0d91e9c1f
+      name: SNMP availability
+      type: INTERNAL
+      key: zabbix[host,snmp,available]
+      delay: 1m
+      history: 7d
+      valuemap:
+        name: 'HPE Aruba Networking CX 6000 R9Y03A: Zabbix SNMP availability'
+      tags:
+      - tag: component
+        value: availability
+      triggers:
+      - uuid: 06cca25bb46e4597b75292c192098a99
+        expression: max(/HPE Aruba Networking CX 6000 R9Y03A by SNMP/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0
+        name: 'CX 6000 R9Y03A: No SNMP data collection'
+        priority: HIGH
+        description: Zabbix cannot poll this switch over SNMP.
+    - uuid: 30acb8ecd1cd430ea37599f1c1671a1e
+      name: System description
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.1.0
+      key: switch.sysdescr
+      delay: 1h
+      history: 30d
+      tags:
+      - tag: component
+        value: inventory
+      trends: '0'
+      value_type: TEXT
+    - uuid: aa8b4cf07e6d45a2843a332875bd2a66
+      name: System object ID
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.2.0
+      key: switch.sysobjectid
+      delay: 1h
+      history: 30d
+      tags:
+      - tag: component
+        value: inventory
+      trends: '0'
+      value_type: CHAR
+    - uuid: 730deeab1ad8499681409c47275b056b
+      name: System name
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.5.0
+      key: switch.sysname
+      delay: 10m
+      history: 30d
+      tags:
+      - tag: component
+        value: inventory
+      trends: '0'
+      value_type: CHAR
+    - uuid: be1c3d7e4ed048f4919c92777195a91d
+      name: System location
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.6.0
+      key: switch.syslocation
+      delay: 1h
+      history: 30d
+      tags:
+      - tag: component
+        value: inventory
+      trends: '0'
+      value_type: CHAR
+    - uuid: 157acc9c058544678573275eb975b766
+      name: System contact
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.4.0
+      key: switch.syscontact
+      delay: 1h
+      history: 30d
+      tags:
+      - tag: component
+        value: inventory
+      trends: '0'
+      value_type: CHAR
+    - uuid: b53bba403b6c49918cabc418d545cf36
+      name: Number of interfaces
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.2.1.0
+      key: switch.interfaces.count
+      delay: 10m
+      history: 30d
+      tags:
+      - tag: component
+        value: interfaces
+    - uuid: 3921824faa2b4bbea4ca03103c7915ba
+      name: System uptime
+      type: SNMP_AGENT
+      snmp_oid: 1.3.6.1.2.1.1.3.0
+      key: switch.uptime
+      delay: 5m
+      history: 30d
+      units: uptime
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.01'
+      tags:
+      - tag: component
+        value: system
+    discovery_rules:
+    - uuid: 4b12da99c48e4ee392dd893fb986db08
+      name: Network interface discovery
+      type: SNMP_AGENT
+      snmp_oid: discovery[{#IFOPERSTATUS},1.3.6.1.2.1.2.2.1.8,{#IFADMINSTATUS},1.3.6.1.2.1.2.2.1.7,{#IFNAME},1.3.6.1.2.1.31.1.1.1.1,{#IFDESCR},1.3.6.1.2.1.2.2.1.2,{#IFTYPE},1.3.6.1.2.1.2.2.1.3,{#IFALIAS},1.3.6.1.2.1.31.1.1.1.18]
+      key: net.if.discovery
+      delay: 1h
+      lifetime: 7d
+      item_prototypes:
+      - uuid: e7308240a77c4413a8ee8a316b77e769
+        name: 'Interface {#IFNAME}: Administrative status'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.7.{#SNMPINDEX}
+        key: net.if.admin[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        valuemap:
+          name: 'HPE Aruba Networking CX 6000 R9Y03A: IF-MIB ifAdminStatus'
+      - uuid: e21e84029f824c7baa5461e2a8901c9c
+        name: 'Interface {#IFNAME}: Operational status'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.8.{#SNMPINDEX}
+        key: net.if.oper[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        valuemap:
+          name: 'HPE Aruba Networking CX 6000 R9Y03A: IF-MIB ifOperStatus'
+      - uuid: 68c2af9d20bf4871b1756e937af7e233
+        name: 'Interface {#IFNAME}: Alias'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.18.{#SNMPINDEX}
+        key: net.if.alias[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        value_type: CHAR
+      - uuid: 3bb1b0abd40f4fa995f90e7665c69b93
+        name: 'Interface {#IFNAME}: Speed'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.15.{#SNMPINDEX}
+        key: net.if.speed[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        tags:
+        - tag: component
+          value: interface
+        - tag: interface
+          value: '{#IFNAME}'
+        units: Mbit/s
+      - uuid: ab548c8de45744b9ad123c0e8d270481
+        name: 'Interface {#IFNAME}: Inbound traffic'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.6.{#SNMPINDEX}
+        key: net.if.in.bps[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        tags:
+        - tag: component
+          value: traffic
+        - tag: interface
+          value: '{#IFNAME}'
+        value_type: FLOAT
+        units: bps
+        preprocessing: &id001
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        - type: MULTIPLIER
+          parameters:
+          - '8'
+      - uuid: 3108aa2b23eb48838e3d9aa6ba729dad
+        name: 'Interface {#IFNAME}: Outbound traffic'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.31.1.1.1.10.{#SNMPINDEX}
+        key: net.if.out.bps[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        tags:
+        - tag: component
+          value: traffic
+        - tag: interface
+          value: '{#IFNAME}'
+        value_type: FLOAT
+        units: bps
+        preprocessing: *id001
+      - uuid: 2687e252da1b49319d075bd9c869ac0b
+        name: 'Interface {#IFNAME}: Inbound errors/sec'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.14.{#SNMPINDEX}
+        key: net.if.in.errors[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        tags:
+        - tag: component
+          value: errors
+        - tag: interface
+          value: '{#IFNAME}'
+        value_type: FLOAT
+        preprocessing: &id002
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+      - uuid: 66399dd114a94eb2bfd5ec3efb9a7734
+        name: 'Interface {#IFNAME}: Outbound errors/sec'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.20.{#SNMPINDEX}
+        key: net.if.out.errors[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        tags:
+        - tag: component
+          value: errors
+        - tag: interface
+          value: '{#IFNAME}'
+        value_type: FLOAT
+        preprocessing: *id002
+      - uuid: 1d6e2e36a30b439c8a8282090cc7a7ee
+        name: 'Interface {#IFNAME}: Inbound discards/sec'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.13.{#SNMPINDEX}
+        key: net.if.in.discards[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        tags:
+        - tag: component
+          value: errors
+        - tag: interface
+          value: '{#IFNAME}'
+        value_type: FLOAT
+        preprocessing: *id002
+      - uuid: 54d21698461e430c93f1cab2a94dd272
+        name: 'Interface {#IFNAME}: Outbound discards/sec'
+        type: SNMP_AGENT
+        snmp_oid: 1.3.6.1.2.1.2.2.1.19.{#SNMPINDEX}
+        key: net.if.out.discards[{#SNMPINDEX}]
+        delay: 1m
+        history: 30d
+        tags:
+        - tag: component
+          value: errors
+        - tag: interface
+          value: '{#IFNAME}'
+        value_type: FLOAT
+        preprocessing: *id002
+      graph_prototypes:
+      - uuid: 0988aed62ce443c287548716690aeed7
+        name: 'Interface {#IFNAME}: Traffic'
+        graph_items:
+        - color: 199C0D
+          item:
+            host: HPE Aruba Networking CX 6000 R9Y03A by SNMP
+            key: net.if.in.bps[{#SNMPINDEX}]
+        - sortorder: '1'
+          color: F63100
+          item:
+            host: HPE Aruba Networking CX 6000 R9Y03A by SNMP
+            key: net.if.out.bps[{#SNMPINDEX}]
+      - uuid: 1bce9f8bc9294d6ca46ba7a7a4f87834
+        name: 'Interface {#IFNAME}: Errors and discards'
+        graph_items:
+        - color: F63100
+          item:
+            host: HPE Aruba Networking CX 6000 R9Y03A by SNMP
+            key: net.if.in.errors[{#SNMPINDEX}]
+        - sortorder: '1'
+          color: A54F10
+          item:
+            host: HPE Aruba Networking CX 6000 R9Y03A by SNMP
+            key: net.if.out.errors[{#SNMPINDEX}]
+        - sortorder: '2'
+          color: 2774A4
+          item:
+            host: HPE Aruba Networking CX 6000 R9Y03A by SNMP
+            key: net.if.in.discards[{#SNMPINDEX}]
+        - sortorder: '3'
+          color: 6C59DC
+          item:
+            host: HPE Aruba Networking CX 6000 R9Y03A by SNMP
+            key: net.if.out.discards[{#SNMPINDEX}]
+    macros:
+    - macro: '{$SNMP.TIMEOUT}'
+      value: 5m
+      description: Time without successful SNMP polling before the availability trigger fires.
+    valuemaps:
+    - uuid: 9707cdb789a543d69141e3f8f198471b
+      name: 'HPE Aruba Networking CX 6000 R9Y03A: Zabbix SNMP availability'
+      mappings:
+      - value: '0'
+        newvalue: Not available
+      - value: '1'
+        newvalue: Available
+      - value: '2'
+        newvalue: Unknown
+    - uuid: e04094ff4dea47a5944db191ac7047b0
+      name: 'HPE Aruba Networking CX 6000 R9Y03A: IF-MIB ifAdminStatus'
+      mappings:
+      - value: '1'
+        newvalue: Up
+      - value: '2'
+        newvalue: Down
+      - value: '3'
+        newvalue: Testing
+    - uuid: 54d8c7da0556481cb5da89749d2b99bb
+      name: 'HPE Aruba Networking CX 6000 R9Y03A: IF-MIB ifOperStatus'
+      mappings:
+      - value: '1'
+        newvalue: Up
+      - value: '2'
+        newvalue: Down
+      - value: '3'
+        newvalue: Testing
+      - value: '4'
+        newvalue: Unknown
+      - value: '5'
+        newvalue: Dormant
+      - value: '6'
+        newvalue: Not present
+      - value: '7'
+        newvalue: Lower layer down
