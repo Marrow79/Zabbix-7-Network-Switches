@@ -1,0 +1,441 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+  - uuid: 36bff6c29af64692839d077febfc7079
+    name: Templates/Network devices
+  templates:
+  - uuid: 13870bd5f3c849deb8fa647b7f57e962
+    template: Cisco Meraki MS220-24 by SNMP
+    name: Cisco Meraki MS220-24 by SNMP
+    description: Meraki MS220-24-HW (MS220) local-device SNMP template for Zabbix 7.0.30. 24 nominal RJ45 front-panel port class; stated PoE budget 0 W (hardware
+      spec only, NOT monitored via local SNMP). Layer 2. SNMP polling requires Network-wide > Configure > General local SNMP, NOT the separate Meraki dashboard cloud
+      SNMP endpoint. Local standard SNMPv2-MIB/IF-MIB OIDs only; no unsupported proprietary cloud-MIB device OIDs. 64-bit high capacity counters are attempted but
+      may be missing on older firmware; 32-bit fallback is also provided.
+    groups:
+    - name: Templates/Network devices
+    items:
+    - uuid: 9847210ab0344fe182825ee3b45a0ce3
+      name: ICMP ping
+      type: SIMPLE
+      key: icmpping
+      delay: 1m
+      tags:
+      - tag: component
+        value: health
+      triggers:
+      - uuid: 9c91af8f525744a9b1be943f512a38e8
+        expression: max(/Cisco Meraki MS220-24 by SNMP/icmpping,#3)=0
+        name: 'MS220-24: Unavailable by ICMP'
+        priority: HIGH
+        description: Device failed three consecutive ICMP checks.
+        tags:
+        - tag: scope
+          value: availability
+    - uuid: d0cd9e568d0a4e04b74430f5fa3b7a78
+      name: ICMP packet loss
+      type: SIMPLE
+      key: icmppingloss
+      delay: 1m
+      value_type: FLOAT
+      units: '%'
+      tags:
+      - tag: component
+        value: health
+      triggers:
+      - uuid: 2b98559d82274576a6ddc84e43c4f439
+        expression: min(/Cisco Meraki MS220-24 by SNMP/icmppingloss,5m)>{$MERAKI.ICMP.LOSS.WARN} and min(/Cisco Meraki MS220-24 by SNMP/icmppingloss,5m)<100
+        name: 'MS220-24: High packet loss'
+        priority: WARNING
+        description: Packet loss exceeds macro threshold for five minutes.
+        tags:
+        - tag: scope
+          value: performance
+    - uuid: 42debab4fb274aff85c8b64faebc6840
+      name: ICMP response time
+      type: SIMPLE
+      key: icmppingsec
+      delay: 1m
+      value_type: FLOAT
+      units: s
+      tags:
+      - tag: component
+        value: health
+      triggers:
+      - uuid: f5d79b29521c4b269b292d0d75d0e2a4
+        expression: avg(/Cisco Meraki MS220-24 by SNMP/icmppingsec,5m)>{$MERAKI.ICMP.RTT.WARN}
+        name: 'MS220-24: High ICMP RTT'
+        priority: WARNING
+        description: Average response time exceeds macro threshold for five minutes.
+        tags:
+        - tag: scope
+          value: performance
+    - uuid: 485f584e1f0b43e39a47d639c8c8ae05
+      name: SNMP sysUpTime
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.1.3.0]
+      key: meraki.sys.uptime
+      delay: 1m
+      units: uptime
+      description: SNMP agent uptime in seconds; sysUpTime Timeticks converted /100. Not hardware uptime.
+      preprocessing:
+      - type: MULTIPLIER
+        parameters:
+        - '0.01'
+      tags:
+      - tag: component
+        value: health
+      triggers:
+      - uuid: 9f91a241b5204c139c7e6f5e881707b9
+        expression: nodata(/Cisco Meraki MS220-24 by SNMP/meraki.sys.uptime,15m)=1 and last(/Cisco Meraki MS220-24 by SNMP/icmpping)=1
+        name: 'MS220-24: SNMP stopped responding'
+        priority: AVERAGE
+        description: ICMP works but sysUpTime stopped updating. Check local device SNMP and credentials.
+        tags:
+        - tag: scope
+          value: availability
+    - uuid: 3f4e94349ce54552ac33cc5edf03d865
+      name: System description
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.1.1.0]
+      key: meraki.sys.description
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 12h
+      tags:
+      - tag: component
+        value: inventory
+    - uuid: eed06e8ea1304b3197a4c06fa1bcd1fe
+      name: System name
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.1.5.0]
+      key: meraki.sys.name
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 12h
+      tags:
+      - tag: component
+        value: inventory
+    - uuid: a6290092def74558a060f09b0e5a0624
+      name: System object ID
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.1.2.0]
+      key: meraki.sys.objectid
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 12h
+      tags:
+      - tag: component
+        value: inventory
+    - uuid: 4c9d593f74e3475489144bfbcf545b3c
+      name: System contact
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.1.4.0]
+      key: meraki.sys.contact
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 12h
+      tags:
+      - tag: component
+        value: inventory
+    - uuid: 3b024317e9be4377a2df66f883fa3738
+      name: System location
+      type: SNMP_AGENT
+      snmp_oid: get[1.3.6.1.2.1.1.6.0]
+      key: meraki.sys.location
+      delay: 1h
+      value_type: CHAR
+      preprocessing:
+      - type: DISCARD_UNCHANGED_HEARTBEAT
+        parameters:
+        - 12h
+      tags:
+      - tag: component
+        value: inventory
+    - uuid: 0fec7b24fb87481ba90c589b1265f86b
+      name: SNMP availability reported by Zabbix
+      type: INTERNAL
+      key: zabbix[host,snmp,available]
+      delay: 1m
+      description: 1 available, 0 unavailable, 2 unknown; Zabbix internal check.
+      tags:
+      - tag: component
+        value: health
+    discovery_rules:
+    - uuid: a4d9ba1d056f4ad2983a9217f92e93b9
+      name: Network interfaces via IF-MIB
+      type: SNMP_AGENT
+      snmp_oid: discovery[{#IFDESCR},1.3.6.1.2.1.2.2.1.2,{#IFADMINSTATUS},1.3.6.1.2.1.2.2.1.7]
+      key: meraki.if.discovery
+      delay: 1h
+      description: Discover IF-MIB interfaces by index (do not assume fixed SNMP index to port number).
+      filter:
+        conditions:
+        - macro: '{#IFDESCR}'
+          value: '{$MERAKI.IF.MATCHES}'
+      item_prototypes:
+      - uuid: 0fec70c6e2f04440a349a29d1a94fffd
+        name: 'Interface {#IFDESCR}: Operational status'
+        type: SNMP_AGENT
+        snmp_oid: get[1.3.6.1.2.1.2.2.1.8.{#SNMPINDEX}]
+        key: meraki.if.operstatus[{#SNMPINDEX}]
+        delay: 2m
+        valuemap:
+          name: IF-MIB interface status
+        tags:
+        - tag: component
+          value: network
+      - uuid: 8ec84b5e1db84e7dabdbb48bddb962a9
+        name: 'Interface {#IFDESCR}: Administrative status'
+        type: SNMP_AGENT
+        snmp_oid: get[1.3.6.1.2.1.2.2.1.7.{#SNMPINDEX}]
+        key: meraki.if.adminstatus[{#SNMPINDEX}]
+        delay: 5m
+        valuemap:
+          name: IF-MIB admin status
+        tags:
+        - tag: component
+          value: network
+      - uuid: 8d3e1571429a418c90a86a5f54b316a2
+        name: 'Interface {#IFDESCR}: Incoming traffic 64-bit'
+        type: SNMP_AGENT
+        snmp_oid: get[1.3.6.1.2.1.31.1.1.1.6.{#SNMPINDEX}]
+        key: meraki.if.in.hc[{#SNMPINDEX}]
+        delay: 1m
+        value_type: FLOAT
+        units: bps
+        description: IF-MIB ifHCInOctets; availability varies by model/firmware. If unsupported, use 32-bit fallback (less reliable at high speed).
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        - type: MULTIPLIER
+          parameters:
+          - '8'
+        tags:
+        - tag: component
+          value: traffic
+      - uuid: 2d05678fb7bd4887b742eda8bf015352
+        name: 'Interface {#IFDESCR}: Outgoing traffic 64-bit'
+        type: SNMP_AGENT
+        snmp_oid: get[1.3.6.1.2.1.31.1.1.1.10.{#SNMPINDEX}]
+        key: meraki.if.out.hc[{#SNMPINDEX}]
+        delay: 1m
+        value_type: FLOAT
+        units: bps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        - type: MULTIPLIER
+          parameters:
+          - '8'
+        tags:
+        - tag: component
+          value: traffic
+      - uuid: ba804ff4ef7d47018a5a3c26cc881f62
+        name: 'Interface {#IFDESCR}: Incoming traffic 32-bit fallback'
+        type: SNMP_AGENT
+        snmp_oid: get[1.3.6.1.2.1.2.2.1.10.{#SNMPINDEX}]
+        key: meraki.if.in.legacy[{#SNMPINDEX}]
+        delay: 1m
+        value_type: FLOAT
+        units: bps
+        description: Legacy counter may wrap quickly on busy 1G/10G ports; 64-bit graph preferred when supported.
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        - type: MULTIPLIER
+          parameters:
+          - '8'
+        tags:
+        - tag: component
+          value: traffic
+      - uuid: 6eb0004ca98a411b86a30a7d2dddf5b2
+        name: 'Interface {#IFDESCR}: Outgoing traffic 32-bit fallback'
+        type: SNMP_AGENT
+        snmp_oid: get[1.3.6.1.2.1.2.2.1.16.{#SNMPINDEX}]
+        key: meraki.if.out.legacy[{#SNMPINDEX}]
+        delay: 1m
+        value_type: FLOAT
+        units: bps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        - type: MULTIPLIER
+          parameters:
+          - '8'
+        tags:
+        - tag: component
+          value: traffic
+      - uuid: 355ff0b3c92b42cda94bf2f4f283f8b2
+        name: 'Interface {#IFDESCR}: Input errors'
+        type: SNMP_AGENT
+        snmp_oid: get[1.3.6.1.2.1.2.2.1.14.{#SNMPINDEX}]
+        key: meraki.if.in.errors[{#SNMPINDEX}]
+        delay: 2m
+        value_type: FLOAT
+        units: pps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        tags:
+        - tag: component
+          value: errors
+      - uuid: ed8f9f8cc08f4a78abf8faa222ab4141
+        name: 'Interface {#IFDESCR}: Output errors'
+        type: SNMP_AGENT
+        snmp_oid: get[1.3.6.1.2.1.2.2.1.20.{#SNMPINDEX}]
+        key: meraki.if.out.errors[{#SNMPINDEX}]
+        delay: 2m
+        value_type: FLOAT
+        units: pps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        tags:
+        - tag: component
+          value: errors
+      - uuid: a263425babb14f5c997e6f27bf9f21d6
+        name: 'Interface {#IFDESCR}: Input discards'
+        type: SNMP_AGENT
+        snmp_oid: get[1.3.6.1.2.1.2.2.1.13.{#SNMPINDEX}]
+        key: meraki.if.in.discards[{#SNMPINDEX}]
+        delay: 2m
+        value_type: FLOAT
+        units: pps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        tags:
+        - tag: component
+          value: errors
+      - uuid: b8ef47251cc04ea8a5b66a050961fd23
+        name: 'Interface {#IFDESCR}: Output discards'
+        type: SNMP_AGENT
+        snmp_oid: get[1.3.6.1.2.1.2.2.1.19.{#SNMPINDEX}]
+        key: meraki.if.out.discards[{#SNMPINDEX}]
+        delay: 2m
+        value_type: FLOAT
+        units: pps
+        preprocessing:
+        - type: CHANGE_PER_SECOND
+          parameters:
+          - ''
+        tags:
+        - tag: component
+          value: errors
+      graph_prototypes:
+      - uuid: 287cc53c105e446fb1d88c43772a6bc5
+        name: 'Interface {#IFDESCR}: Traffic 64-bit'
+        graph_items:
+        - color: 199C0D
+          item:
+            host: Cisco Meraki MS220-24 by SNMP
+            key: meraki.if.in.hc[{#SNMPINDEX}]
+        - sortorder: '1'
+          color: F63100
+          item:
+            host: Cisco Meraki MS220-24 by SNMP
+            key: meraki.if.out.hc[{#SNMPINDEX}]
+      - uuid: 93151ca6fea3498facddea63749a6783
+        name: 'Interface {#IFDESCR}: Traffic 32-bit fallback'
+        graph_items:
+        - color: 199C0D
+          item:
+            host: Cisco Meraki MS220-24 by SNMP
+            key: meraki.if.in.legacy[{#SNMPINDEX}]
+        - sortorder: '1'
+          color: F63100
+          item:
+            host: Cisco Meraki MS220-24 by SNMP
+            key: meraki.if.out.legacy[{#SNMPINDEX}]
+      - uuid: e1feac61cd984074b7e4765d50f9788a
+        name: 'Interface {#IFDESCR}: Errors and discards'
+        graph_items:
+        - color: 199C0D
+          item:
+            host: Cisco Meraki MS220-24 by SNMP
+            key: meraki.if.in.errors[{#SNMPINDEX}]
+        - sortorder: '1'
+          color: F63100
+          item:
+            host: Cisco Meraki MS220-24 by SNMP
+            key: meraki.if.out.errors[{#SNMPINDEX}]
+        - sortorder: '2'
+          color: 2774A4
+          item:
+            host: Cisco Meraki MS220-24 by SNMP
+            key: meraki.if.in.discards[{#SNMPINDEX}]
+        - sortorder: '3'
+          color: 8E44AD
+          item:
+            host: Cisco Meraki MS220-24 by SNMP
+            key: meraki.if.out.discards[{#SNMPINDEX}]
+      trigger_prototypes:
+      - uuid: 8883e7c61d5243c7857942b3598c8b96
+        expression: '{$MERAKI.IF.ALERT:"{#IFDESCR}"}=1 and last(/Cisco Meraki MS220-24 by SNMP/meraki.if.operstatus[{#SNMPINDEX}])=2 and last(/Cisco Meraki MS220-24
+          by SNMP/meraki.if.adminstatus[{#SNMPINDEX}])=1'
+        name: 'MS220-24: Interface {#IFDESCR} down'
+        priority: AVERAGE
+        description: Opt in for critical interfaces by adding context macro {$MERAKI.IF.ALERT:"<ifDescr>"}=1 on host; otherwise default 0 avoids noisy access-port
+          alerts.
+        tags:
+        - tag: scope
+          value: availability
+    macros:
+    - macro: '{$MERAKI.ICMP.LOSS.WARN}'
+      value: '20'
+      description: ICMP loss % sustained over 5m
+    - macro: '{$MERAKI.ICMP.RTT.WARN}'
+      value: '0.15'
+      description: Average ICMP RTT in seconds over 5m
+    - macro: '{$MERAKI.IF.MATCHES}'
+      value: .*
+      description: Regex for interface discovery
+    - macro: '{$MERAKI.IF.ALERT}'
+      value: '0'
+      description: Interface-down alert disabled unless context macro is set to 1 for critical interface
+    valuemaps:
+    - uuid: a9eeff7cd93a4259ae201a59c96f62ce
+      name: IF-MIB interface status
+      mappings:
+      - value: '1'
+        newvalue: up
+      - value: '2'
+        newvalue: down
+      - value: '3'
+        newvalue: testing
+      - value: '4'
+        newvalue: unknown
+      - value: '5'
+        newvalue: dormant
+      - value: '6'
+        newvalue: notPresent
+      - value: '7'
+        newvalue: lowerLayerDown
+    - uuid: 6954942018c04b16ab6177c475830754
+      name: IF-MIB admin status
+      mappings:
+      - value: '1'
+        newvalue: up
+      - value: '2'
+        newvalue: down
+      - value: '3'
+        newvalue: testing
